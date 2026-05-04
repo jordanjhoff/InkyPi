@@ -1,0 +1,116 @@
+{% extends "plugin.html" %}
+{% block content %}
+<div class="cc-root">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="cc-left">
+    <div class="cc-day-name">{{ day_name }}</div>
+    <div class="cc-full-date">{{ full_date }}</div>
+
+    {% if weather %}
+    <div class="cc-weather">
+      <div class="cc-weather-top">
+        <div class="cc-temp">{{ weather.temp_f }}<span class="cc-temp-unit">°F</span></div>
+        {% if weather.icon_path %}
+        <img class="cc-weather-icon" src="{{ weather.icon_path }}" alt="weather icon">
+        {% endif %}
+      </div>
+      <div class="cc-condition">{{ weather.condition_text }}</div>
+      <div class="cc-sub">Feels like {{ weather.feels_like_f }}° &nbsp;·&nbsp; Humidity {{ weather.humidity }}%</div>
+      {% if weather.rain_hours %}
+      <div class="cc-rain">
+        {% for h in weather.rain_hours %}<span class="cc-rain-chip"><span class="cc-rain-label">{{ h.label }}</span> <span class="cc-rain-pct">{{ h.pct }}%</span></span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if cat_sprite %}
+    <div class="cc-divider"></div>
+    <div class="cc-cat">
+      <img src="{{ cat_sprite }}" alt="cat" class="cc-cat-sprite">
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="cc-right">
+    <div class="cc-grid">
+
+      <!-- Row 1: column headers -->
+      <div class="cc-gutter cc-gutter-header"></div>
+      {% for day in days %}
+      <div class="cc-col-header{% if day.is_today %} cc-today-header{% endif %}">
+        {{ day.header }}
+      </div>
+      {% endfor %}
+
+      <!-- Row 2: all-day events -->
+      <div class="cc-gutter cc-allday-gutter">all‑day</div>
+      {% for day in days %}
+      <div class="cc-allday-cell{% if day.is_today %} cc-today-tint{% endif %}">
+        {% for ev in day.all_day_events %}
+        <div class="cc-event cc-allday-event"
+             style="background:{{ ev.color }};color:{{ ev.text_color }}">
+          {{ ev.title }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <!-- Row 3: time grid -->
+      <div class="cc-gutter cc-hours-gutter">
+        {% for h in range(start_hour, end_hour) %}
+        <div class="cc-hour-label">
+          {%- if h == 0 -%}12am
+          {%- elif h < 12 -%}{{ h }}am
+          {%- elif h == 12 -%}12pm
+          {%- else -%}{{ h - 12 }}pm
+          {%- endif -%}
+        </div>
+        {% endfor %}
+      </div>
+
+      {% for day in days %}
+      <div class="cc-day-col{% if day.is_today %} cc-today-tint{% endif %}"
+           data-date="{{ day.date_iso }}">
+
+        <!-- hour rows: flex children that produce border-bottom grid lines -->
+        {% for i in range(total_hours) %}
+        <div class="cc-hour-row"></div>
+        {% endfor %}
+
+        <!-- now indicator snapped to hour line (today only) -->
+        {% if day.is_today %}
+        {%- set now_pct = (now_hour - start_hour) / total_hours * 100 -%}
+        {% if now_pct >= 0 and now_pct <= 100 %}
+        <div class="cc-now-line" style="top:{{ now_pct | round(2) }}%">
+          <div class="cc-now-dot"></div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- timed events -->
+        {% for ev in day.timed_events %}
+        {%- set raw_top    = (ev.start_frac - start_hour) / total_hours * 100 -%}
+        {%- set raw_bottom = (ev.end_frac   - start_hour) / total_hours * 100 -%}
+        {%- set top_pct    = [raw_top,    0  ] | max -%}
+        {%- set bot_pct    = [raw_bottom, 100] | min -%}
+        {%- set h_pct      = [bot_pct - top_pct, 1.5] | max -%}
+        {% if bot_pct > 0 and raw_top < 100 %}
+        <div class="cc-event cc-timed-event"
+             style="top:{{ top_pct | round(2) }}%;height:{{ h_pct | round(2) }}%;background:{{ ev.color }};color:{{ ev.text_color }};">
+          <div class="cc-event-title">{{ ev.title }}</div>
+          <div class="cc-event-time">{{ ev.start_label }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+      </div>
+      {% endfor %}
+
+    </div><!-- .cc-grid -->
+  </div><!-- .cc-right -->
+
+</div><!-- .cc-root -->
+{% endblock %}

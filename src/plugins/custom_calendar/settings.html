@@ -1,0 +1,182 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<div class="form-group">
+  <label class="form-label">Time Window</label>
+  <div class="form-group">
+    <select name="timeMode" id="timeMode" class="form-input">
+      <option value="fixed">Fixed</option>
+      <option value="rolling">Rolling (centered on now)</option>
+    </select>
+  </div>
+  <div id="fixedOptions" class="form-group">
+    <span>Start hour (0–23) </span>
+    <input type="number" name="startHour" id="startHour" class="form-input" min="0" max="23" value="6">
+    <span>End hour (1–24) </span>
+    <input type="number" name="endHour" id="endHour" class="form-input" min="1" max="24" value="22">
+  </div>
+  <div id="rollingOptions" class="form-group" style="display:none">
+    <span>Hours to display </span>
+    <input type="number" name="hoursDisplay" id="hoursDisplay" class="form-input" min="4" max="24" value="16">
+  </div>
+</div>
+
+<div class="form-group">
+  <label class="form-label">Bottom Panel</label>
+  <div class="form-group">
+    <span>Display </span>
+    <select name="catMode" id="catMode" class="form-input">
+      <option value="none">None</option>
+      <option value="sprite">Cat sprite</option>
+      <option value="room">Cats in room</option>
+      <option value="album">Image album</option>
+    </select>
+  </div>
+  <div class="form-group" id="catColorGroup">
+    <span>Color </span>
+    <select name="catColor" id="catColor" class="form-input">
+      <option value="white">White</option>
+      <option value="grey">Grey</option>
+      <option value="orange">Orange</option>
+    </select>
+  </div>
+  <div class="form-group" id="albumGroup">
+    <span>Folder path </span>
+    <input type="text" name="albumPath" id="albumPath" class="form-input" placeholder="/home/pi/album">
+  </div>
+</div>
+
+<div class="form-group">
+  <label class="form-label">Weather</label>
+  <div class="form-group">
+    <span>Latitude </span>
+    <input readonly type="text" id="latitude" name="latitude" class="form-input" />
+  </div>
+  <div class="form-group">
+    <span>Longitude </span>
+    <input readonly type="text" id="longitude" name="longitude" class="form-input" />
+  </div>
+  <button type="button" id="openMap" class="action-button compact">Select Location</button>
+</div>
+
+<div class="form-group">
+  <label class="form-label">Calendars:</label>
+  <div id="calendarList"></div>
+  <button type="button" id="addCalendarBtn" class="form-input collapsible" onclick="addCalendarInput('', '#2563eb')">Add Calendar</button>
+</div>
+
+<div id="mapModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" onclick="closeModal('mapModal')">×</span>
+    <h2>Select Location</h2>
+    <div class="separator"></div>
+    <div id="map" style="width: 100%; height: 200px; margin: 10px 0px;"></div>
+    <button id="closeMap" class="action-button">Save</button>
+  </div>
+</div>
+
+<script>
+  function addCalendarInput(url = '', color = '#2563eb') {
+    const calendarList = document.getElementById('calendarList');
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('calendar-entry', 'form-group');
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.name = 'calendarColors[]';
+    colorInput.classList.add('color-picker');
+    colorInput.value = color;
+
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.name = 'calendarURLs[]';
+    urlInput.placeholder = 'Calendar ICS/webcal URL';
+    urlInput.required = true;
+    urlInput.classList.add('form-input');
+    urlInput.value = url;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.innerText = '✕';
+    removeBtn.classList.add('remove-btn');
+    removeBtn.onclick = () => wrapper.remove();
+
+    wrapper.appendChild(colorInput);
+    wrapper.appendChild(urlInput);
+    wrapper.appendChild(removeBtn);
+
+    calendarList.appendChild(wrapper);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const $latitude  = document.querySelector('#latitude');
+    const $longitude = document.querySelector('#longitude');
+    const $openMap   = document.querySelector('#openMap');
+    const $closeMap  = document.querySelector('#closeMap');
+
+    let latitude  = +$latitude.value  || 0;
+    let longitude = +$longitude.value || 0;
+    let zoom = latitude && longitude ? 4.5 : 2.5;
+    let map, marker;
+
+    $openMap.addEventListener('click', () => {
+      openModal('mapModal');
+      setTimeout(() => {
+        if (!map) {
+          map = L.map('map').setView([latitude || 0, longitude || 0], zoom);
+          L.tileLayer(OSM_TILE_URL).addTo(map);
+          marker = L.marker([latitude || 0, longitude || 0], { draggable: true }).addTo(map);
+          map.on('click', event => marker.setLatLng(event.latlng));
+        }
+      }, 100);
+    });
+
+    $closeMap.addEventListener('click', () => {
+      const pos = marker.getLatLng().wrap();
+      $latitude.value  = pos.lat;
+      $longitude.value = pos.lng;
+      closeModal('mapModal');
+    });
+
+    let calendars = [{ url: '', color: '#2563eb' }];
+
+    if (loadPluginSettings) {
+      document.getElementById('latitude').value  = pluginSettings.latitude  || '';
+      document.getElementById('longitude').value = pluginSettings.longitude || '';
+      document.getElementById('catMode').value   = pluginSettings.catMode   || 'none';
+      document.getElementById('catColor').value  = pluginSettings.catColor  || 'white';
+      document.getElementById('albumPath').value = pluginSettings.albumPath || '';
+      document.getElementById('timeMode').value = pluginSettings.timeMode || 'fixed';
+      document.getElementById('startHour').value    = pluginSettings.startHour    ?? '6';
+      document.getElementById('endHour').value      = pluginSettings.endHour      ?? '22';
+      document.getElementById('hoursDisplay').value = pluginSettings.hoursDisplay || '16';
+
+      if (pluginSettings['calendarURLs[]']) {
+        calendars = pluginSettings['calendarURLs[]'].map((url, i) => ({
+          url:   url || '',
+          color: (pluginSettings['calendarColors[]'] || [])[i] || '#2563eb'
+        }));
+      }
+    }
+
+    function updateCatModeUI() {
+      const mode = document.getElementById('catMode').value;
+      document.getElementById('catColorGroup').style.display = mode === 'sprite' ? '' : 'none';
+      document.getElementById('albumGroup').style.display    = mode === 'album'  ? '' : 'none';
+    }
+    document.getElementById('catMode').addEventListener('change', updateCatModeUI);
+    updateCatModeUI();
+
+    function updateTimeModeUI() {
+      const mode = document.getElementById('timeMode').value;
+      document.getElementById('fixedOptions').style.display   = mode === 'fixed'   ? '' : 'none';
+      document.getElementById('rollingOptions').style.display = mode === 'rolling' ? '' : 'none';
+    }
+    document.getElementById('timeMode').addEventListener('change', updateTimeModeUI);
+    updateTimeModeUI();
+
+    calendars.forEach(({ url, color }) => addCalendarInput(url, color));
+  });
+</script>

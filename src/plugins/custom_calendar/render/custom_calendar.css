@@ -1,0 +1,290 @@
+/* ── Base height fill ── */
+html, body { height: 100%; overflow: hidden; }
+.container  { height: 100%; overflow: hidden; }
+
+/* ── Root layout ── */
+.cc-root {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  font-size: 1.35vw;
+  font-family: 'Jost', sans-serif;
+}
+
+/* ════════════════════════════════════
+   LEFT PANEL
+   ════════════════════════════════════ */
+.cc-left {
+  flex: 0 0 42%;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 18px 8px 0;
+  border-right: 1.5px solid #bbb;
+  overflow: hidden;
+  font-size: 1.6vw;
+}
+
+.cc-day-name {
+  font-size: 3.2em;
+  font-weight: 700;
+  line-height: 1.0;
+  margin-top: 4px;
+}
+
+.cc-full-date {
+  font-size: 1.25em;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.cc-time {
+  font-size: 1.85em;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* weather */
+.cc-weather {
+  margin-top: 18px;
+}
+
+
+.cc-weather-top {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.cc-weather-icon {
+  width: 11vw;
+  height: 11vw;
+  flex-shrink: 0;
+}
+
+.cc-temp {
+  font-size: 14vw;
+  font-weight: 800;
+  line-height: 1.0;
+}
+
+.cc-temp-unit {
+  font-size: 0.3em;
+  font-weight: 400;
+}
+
+.cc-condition {
+  font-size: 1.1em;
+  margin-top: 6px;
+}
+
+.cc-sub {
+  font-size: 0.95em;
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
+/* ════════════════════════════════════
+   RIGHT PANEL
+   ════════════════════════════════════ */
+.cc-right {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding-left: 10px;
+  overflow: hidden;
+}
+
+.cc-grid {
+  display: grid;
+  grid-template-columns: 52px repeat(5, 1fr);
+  grid-template-rows: auto auto 1fr;
+  height: 100%;
+}
+
+/* ── Column headers (row 1) ── */
+.cc-gutter-header {
+  border-bottom: 1.5px solid #999;
+}
+
+.cc-col-header {
+  text-align: center;
+  padding: 4px 2px 6px;
+  font-weight: 600;
+  font-size: 1.0em;
+  border-left: 1px solid #999;
+  border-bottom: 1.5px solid #999;
+}
+
+.cc-today-header {
+  background: rgba(37,99,235,0.12);
+  font-weight: 700;
+}
+
+/* ── All-day row (row 2) ── */
+.cc-allday-gutter {
+  font-size: 0.85em;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  border-bottom: 1px solid #999;
+}
+
+.cc-allday-cell {
+  border-left: 1px solid #999;
+  border-bottom: 1px solid #999;
+  padding: 2px 3px;
+  min-height: 20px;
+  overflow: hidden;
+}
+
+.cc-allday-event {
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 0.90em;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Time grid (row 3) ── */
+.cc-gutter { overflow: hidden; }
+
+.cc-hours-gutter {
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-hour-label {
+  flex: 1;
+  text-align: right;
+  padding-right: 5px;
+  padding-top: 1px;
+  font-size: 0.85em;
+  opacity: 0.75;
+  display: flex;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+/* ── Day columns ── */
+.cc-day-col {
+  position: relative;
+  border-left: 1px solid #999;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-today-tint {
+  background: rgba(37,99,235,0.05);
+}
+
+/* Hour rows sit in normal flow and produce grid lines via border-bottom.
+   Events are absolutely positioned on top. */
+.cc-hour-row {
+  flex: 1;
+  min-height: 0;
+  border-bottom: 1px solid #999;
+  pointer-events: none;
+}
+
+/* ── Events ── */
+.cc-timed-event {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.95em;
+  line-height: 1.3;
+  z-index: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.cc-event-title {
+  font-weight: 700;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.cc-event-time {
+  font-size: 0.88em;
+  opacity: 0.88;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* ── Divider ── */
+.cc-divider {
+  border-top: 1px solid #999;
+  margin: 6px 0;
+}
+
+/* ── Cat sprite ── */
+.cc-cat {
+  margin-top: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.cc-cat-sprite {
+  image-rendering: pixelated;
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: bottom left;
+  display: block;
+}
+
+/* ── Rain forecast ── */
+.cc-rain {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.cc-rain-chip {
+  font-size: 0.82em;
+  white-space: nowrap;
+}
+
+.cc-rain-label {
+  font-weight: 700;
+}
+
+.cc-rain-pct {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* ── Now indicator ── */
+.cc-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.cc-now-dot {
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+}

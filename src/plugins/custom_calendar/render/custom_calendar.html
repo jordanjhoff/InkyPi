@@ -98,8 +98,8 @@
         {%- set bot_pct    = [raw_bottom, 100] | min -%}
         {%- set h_pct      = [bot_pct - top_pct, 1.5] | max -%}
         {% if bot_pct > 0 and raw_top < 100 %}
-        <div class="cc-event cc-timed-event"
-             style="top:{{ top_pct | round(2) }}%;height:{{ h_pct | round(2) }}%;background:{{ ev.color }};color:{{ ev.text_color }};">
+        <div class="cc-event cc-timed-event {{ ev.width_class }}"
+             style="top:{{ top_pct | round(2) }}%;height:{{ h_pct | round(2) }}%;left:calc({{ ev.left_pct }}% + 2px);width:calc({{ ev.width_pct }}% - 4px);background:{{ ev.color }};color:{{ ev.text_color }};">
           <div class="cc-event-title">{{ ev.title }}</div>
           <div class="cc-event-time">{{ ev.start_label }}</div>
         </div>

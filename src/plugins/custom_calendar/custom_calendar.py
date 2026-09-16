@@ -225,10 +225,70 @@ class CustomCalendar(BasePlugin):
                 "is_today": day_date == today,
                 "header": day_date.strftime("%a %-m/%-d"),
                 "all_day_events": all_day_events,
-                "timed_events": timed_events,
+                "timed_events": self.layout_lanes(timed_events),
             })
 
         return days
+
+    def layout_lanes(self, events):
+        """Give overlapping events side-by-side lanes instead of stacking them.
+
+        Sorts by start time (longest first on ties), groups events into clusters
+        of transitively overlapping events, and assigns each a horizontal slice
+        of the day column via left_pct / width_pct.
+        """
+        events.sort(key=lambda e: (e["start_frac"], -e["end_frac"]))
+
+        cluster, cluster_end = [], None
+        for ev in events:
+            if cluster and ev["start_frac"] >= cluster_end:
+                self._place_cluster(cluster)
+                cluster, cluster_end = [], None
+            cluster.append(ev)
+            cluster_end = ev["end_frac"] if cluster_end is None else max(cluster_end, ev["end_frac"])
+        if cluster:
+            self._place_cluster(cluster)
+
+        return events
+
+    def _place_cluster(self, cluster):
+        lanes = []  # lanes[i] holds the end_frac of the last event placed in lane i
+        for ev in cluster:
+            for i, lane_end in enumerate(lanes):
+                # back-to-back events (end == start) do not overlap
+                if ev["start_frac"] >= lane_end:
+                    ev["lane"] = i
+                    lanes[i] = ev["end_frac"]
+                    break
+            else:
+                ev["lane"] = len(lanes)
+                lanes.append(ev["end_frac"])
+
+        lane_count = len(lanes)
+        lane_width = 100.0 / lane_count
+        for ev in cluster:
+            # widen rightward across any lanes that hold nothing overlapping this event
+            span = 1
+            for i in range(ev["lane"] + 1, lane_count):
+                if any(
+                    other is not ev
+                    and other["lane"] == i
+                    and other["start_frac"] < ev["end_frac"]
+                    and other["end_frac"] > ev["start_frac"]
+                    for other in cluster
+                ):
+                    break
+                span += 1
+
+            width = span * lane_width
+            ev["left_pct"] = round(ev["lane"] * lane_width, 2)
+            ev["width_pct"] = round(width, 2)
+            if width <= 35:
+                ev["width_class"] = "cc-tiny"
+            elif width <= 60:
+                ev["width_class"] = "cc-narrow"
+            else:
+                ev["width_class"] = ""
 
     def fetch_all_events(self, urls_and_colors, tz, start_dt, end_dt):
         events = []

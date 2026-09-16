@@ -194,10 +194,10 @@ html, body { height: 100%; overflow: hidden; }
 }
 
 /* ── Events ── */
+/* left/width come from inline styles so overlapping events share the column */
 .cc-timed-event {
   position: absolute;
-  left: 2px;
-  right: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
   border-radius: 4px;
   padding: 3px 6px;
   font-size: 0.95em;
@@ -205,6 +205,24 @@ html, body { height: 100%; overflow: hidden; }
   z-index: 1;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+/* Sharing a column leaves little room — drop the time line and tighten up. */
+.cc-narrow {
+  font-size: 0.82em;
+  padding: 2px 3px;
+  line-height: 1.15;
+}
+
+.cc-tiny {
+  font-size: 0.72em;
+  padding: 1px 2px;
+  line-height: 1.1;
+}
+
+.cc-narrow .cc-event-time,
+.cc-tiny .cc-event-time {
+  display: none;
 }
 
 .cc-event-title {
